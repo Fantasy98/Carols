@@ -16,10 +16,10 @@ physical_devices = tf.config.list_physical_devices('GPU')
 tf.config.experimental.set_memory_growth(physical_devices[0], enable=True)
 
 
-#%%
+
 
 u, v, u_mean, v_mean, u_fluc, v_fluc, vorticity, velocity, velocity_mean, velocity_fluc, x_coord, y_coord, x_vort_coord, y_vort_coord, dx_vort, dy_vort, fignum=flow.Flow(min_t=999, max_t=999, t_frames=1)
-#%%
+
 #------Start-----
 #Creates the data matrix 
 X_u=np.zeros((8192,1000)) 
@@ -28,7 +28,7 @@ X_velocity=np.zeros((8192,1000))
 X_vorticity=np.zeros((7812,1000))
 
 #--Preprocessing data
-#%%
+
 #Reshaping the data as matrices with rows corresponding to velocity component info accross
 #the domain and with columns corresponding to time snapshots
 for t in list(range(1000)):
@@ -39,16 +39,16 @@ for t in list(range(1000)):
     vv=np.copy(v[t,:,:])
     vv_r=np.reshape(np.transpose(vv),(8192))
     X_v[:,t]=np.copy(vv_r)
-#%%
+
 X_u_mean = np.mean(X_u,axis=-1)
 X_u_std = np.std(X_u,-1)
 
-#%%
+
 ## u_data.shape = 1000,
 LEN = X_u.shape[0]
 for i in range(LEN):
     X_u[i,:] = (X_u[i,:] - X_u_mean[i])/X_u_std[i]
-#%%
+
 input_size=10 #INPUT - number of time steps used in each batch
 X_train = np.empty(shape=(LEN-1,1000-input_size,input_size,1))
 Y_train = np.empty(shape=(LEN-1,1000-input_size))
@@ -70,7 +70,7 @@ for series in range(LEN-1):
 
     X_train[series,:,:] = x_train
     Y_train[series,:] = y_train
-#%%
+
 tf.keras.backend.clear_session()
 #Initialising the RNN  
 regressor=Sequential()
@@ -97,7 +97,7 @@ optimizer_A = tf.keras.optimizers.Adam(learning_rate=LR)
 
 regressor.compile(optimizer=optimizer_A, loss = 'mean_squared_error')
 print(regressor.summary())
-#%%
+
 N_series = 40
 all_history = []
 
@@ -114,9 +114,9 @@ for series in range(N_series):
     hist = history.history
 
     all_history.append(hist["loss"])
-#%%
+
 regressor.save("LSTM_2.h5")
-#%%
+
 loss = np.empty(N_series*N_EPOCHS)
 for i in range(len(all_history)):
     loss[i*100:100*(i+1)] = np.array(all_history[i])
@@ -124,7 +124,7 @@ plt.plot(loss)
 # plt.plot(hist["val_loss"])
 plt.show()
 
-#%%
+
 #Predicting the data
 u_test_set = X_u[-1]
 
@@ -137,11 +137,10 @@ for i in range(input_size,np.shape(u_test_set)[0]):
         # y_test[i-input_size]=u_test_set[i]
 
 predicted_data = regressor.predict(x_test)
-#%%
+
 plt.figure()
 plt.plot(predicted_data,label="prediction")
 plt.plot(u_test_set,label="org")
 # plt.plot(u_data,label="org")
 plt.legend()
 plt.show()
-# %%
